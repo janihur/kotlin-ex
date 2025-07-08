@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
 @RestController
-@RequestMapping("/")
-class MessageController(private val service: MessageService) {
+@RequestMapping("/greetings/v1")
+class GreetingsV1Controller(private val service: MessageService) {
     @GetMapping
     fun listMessages() = service.findMessages()
 
