@@ -1,0 +1,96 @@
+# jokes
+
+
+An example Kotlin Spring Boot API application with H2 database backend.
+
+Originally https://kotlinlang.org/docs/jvm-get-started-spring-boot.html
+
+Initial application skeleton created by: https://start.spring.io/
+
+Run the application in the IDE:
+```
+Go to file: JokesApplication.kt
+ > Ctrl + Shift + F10
+```
+
+HTTP calls greetings:
+```
+curl --verbose http://localhost:8080
+curl --verbose http://localhost:8080/ID
+
+curl -X POST --location \
+ http://localhost:8080 \
+ -H 'Content-Type: application/json' \
+ -d '{ "text": "Hello!" }'
+
+curl -X POST --location \
+ http://localhost:8080 \
+ -H 'Content-Type: application/json' \
+ -d '{ "text": "Bonjour!" }'
+
+curl -X POST --location \
+ http://localhost:8080 \
+ -H 'Content-Type: application/json' \
+ -d '{ "text": "Ciao!" }'
+```
+
+HTTP calls jokes:
+```
+curl --verbose http://localhost:8080/jokes/v1
+```
+
+```
+curl --verbose http://localhost:8080/jokes/v1/import \
+ -X POST \
+ --header 'Content-Type: application/json' \
+ --data "[{\"family\": \"dadjoke\", \"text\": \"Why don't scientists trust atoms? Because they make up everything.\"}]"
+
+curl --verbose http://localhost:8080/jokes/v1/import \
+ -X POST \
+ --header 'Content-Type: application/json' \
+ --data "[{\"family\": \"dadjoke\", \"text\": \"Why did the scarecrow win an award? Because he was outstanding in his field.\"},
+{\"family\": \"dadjoke\", \"text\": \"Why did the tomato turn red? Because it saw the salad dressing.\"}]"
+
+curl --verbose http://localhost:8080/jokes/v1/6
+
+curl --verbose 'http://localhost:8080/jokes/v1?family=dadjoke&amount=2'
+```
+
+The simpsons api has discontinued on 8th July 2025 as glitch.com ended project hosting
+
+https://github.com/15Dkatz/official_joke_api
+https://official-joke-api.appspot.com/jokes/random
+
+## API
+
+|API                    |Description|
+|-----------------------|-----------|
+|`POST /jokes/v1/import`|Add a batch of jokes to local database.|
+|`GET /jokes/v1`        |Get a random joke from internet.|
+|`GET /jokes/v1/{id}`   |Get a joke from database by `{id}`.|
+
+Unexpected problems are covered automatically by the web framework as [500 Internal Server Error](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500).
+
+## Dad Jokes
+
+Curated list of high quality Dad Jokes.
+```
+"Did you hear about the claustrophobic astronaut? He just needed a little space.",
+"I told my friend 10 jokes to make him laugh. Sadly, no pun in ten did.",
+"I told my wife she was drawing her eyebrows too high. She looked surprised.",
+"I used to be a baker, but I couldn’t make enough dough.",
+"I used to play piano by ear, but now I use my hands.",
+"I’m reading a book on anti-gravity. It’s impossible to put down.",
+"Parallel lines have so much in common. It’s a shame they’ll never meet.",
+"Why did cowboys hang lanterns on their saddles at night? So they could use saddle-light navigation."
+"Why did the bicycle fall over? Because it was two-tired.",
+"Why did the chicken join a band? Because it had the drumsticks.",
+"Why did the coffee file a police report? It got mugged.",
+"Why did the golfer bring two pairs of pants? In case he got a hole in one.",
+"Why did the math book look sad? Because it had so many problems.",
+"Why did the scarecrow win an award? Because he was outstanding in his field.",
+"Why did the tomato turn red? Because it saw the salad dressing.",
+"Why don't scientists trust atoms? Because they make up everything.",
+"Why don’t scientists trust stairs? Because they’re always up to something.",
+"Why don’t skeletons fight each other? They don’t have the guts",
+```

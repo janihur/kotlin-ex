@@ -1,5 +1,9 @@
 package net.metsankulma.jokes
 
+import net.metsankulma.jokes.dto.ErrorResponse
+import net.metsankulma.jokes.service.BaconIpsumApi
+import net.metsankulma.jokes.service.ChuckNorrisApi
+import net.metsankulma.jokes.service.OfficialJokeApi
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -7,42 +11,107 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-//import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.net.URI
 
 @RestController
 @RequestMapping(ApiPaths.JOKES_V1)
 class JokesV1Controller(private var service: JokesService) {
 
-    private val logger = LoggerFactory.getLogger(JokesV1Controller::class.java)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-    @GetMapping("/{id}")
-    fun listJokes(@PathVariable id: Int): Joke {
-        return Joke(family = "dadjokes", text= listOf(
-            "Why don't scientists trust atoms? Because they make up everything.",
-            "Why did the scarecrow win an award? Because he was outstanding in his field.",
-            "I told my wife she was drawing her eyebrows too high. She looked surprised.",
-            "Parallel lines have so much in common. It’s a shame they’ll never meet.",
-            "Why don’t skeletons fight each other? They don’t have the guts",
-            "I used to play piano by ear, but now I use my hands.",
-            "Why did the bicycle fall over? Because it was two-tired.",
-            "Why did the math book look sad? Because it had so many problems.",
-            "Did you hear about the claustrophobic astronaut? He just needed a little space.",
-            "Why did the golfer bring two pairs of pants? In case he got a hole in one.",
-            "I used to be a baker, but I couldn’t make enough dough.",
-            "Why did the tomato turn red? Because it saw the salad dressing.",
-            "I’m reading a book on anti-gravity. It’s impossible to put down.",
-            "Why did the coffee file a police report? It got mugged.",
-            "I told my friend 10 jokes to make him laugh. Sadly, no pun in ten did.",
-            "Why don’t scientists trust stairs? Because they’re always up to something!",
-            "Why did the chicken join a band? Because it had the drumsticks!",
-        )[id])
+    @GetMapping("/bacon")
+    @Suppress("unused")
+    fun getBaconIpsum(): ResponseEntity<List<String>> {
+        val bacon = BaconIpsumApi().get()
+        return ResponseEntity.ok(bacon)
+    }
+
+    // get a random joke for family
+    @GetMapping("/")
+    @Suppress("unused")
+    fun getJoke(@RequestParam(required = true) family: String, @RequestParam amount: Int = 1): ResponseEntity<Any> {
+        logger.info("One joke requested for family: '$family', amount: $amount")
+        // allow only certain family values
+        val allowedFamilies = setOf("bacon", "chucknorris", "dadjoke", "official", "simpsons")
+        if (family !in allowedFamilies) {
+            val error = ErrorResponse(
+                httpStatusCode = 400,
+                message = "Invalid 'family' parameter.",
+                details = mapOf(
+                    "receivedValue" to family,
+                    "allowedValues" to allowedFamilies)
+            )
+            logger.warn(error.toString())
+            return ResponseEntity.badRequest().body(error)
+        }
+        // allow only certain amount values
+        if (amount < 1 || amount > 10) {
+            val error = ErrorResponse(
+                httpStatusCode = 400,
+                message = "Invalid 'amount' parameter.",
+                details = mapOf(
+                    "receivedValue" to amount,
+                    "allowedValues" to "1-10"
+                )
+            )
+            logger.warn(error.toString())
+            return ResponseEntity.badRequest().body(error)
+        }
+
+        val joke = when (family) {
+            "bacon" -> {
+                logger.info("Fetching a random bacon.")
+                val bacon = BaconIpsumApi().get()
+                Joke(family = family, text = bacon.first())
+            }
+            "chucknorris" -> {
+                logger.info("Fetching a random Chuck Norris fact.")
+                val fact = ChuckNorrisApi().get()
+                Joke(family = family, text = fact)
+            }
+            "dadjoke" -> {
+                logger.info("Fetching a random dad joke.")
+                Joke(family = family, text = "TODO")
+            }
+            "official" -> {
+                logger.info("Fetching a random official joke.")
+                val joke = OfficialJokeApi().get()
+                logger.debug("Received joke: $joke")
+                Joke(family = family, text = "TODO")
+            }
+            "simpsons" -> {
+                logger.info("Fetching a random Simpsons quote.")
+                Joke(family = family, text = "TODO")
+            }
+            else -> {
+                logger.error("Unexpected family value: $family")
+                Joke(family = family, text = "Never heard of it!")
+            }
+        }
+
+        return ResponseEntity.ok(joke)
+    }
+
+    @GetMapping("joke/{id}")
+    @Suppress("unused")
+    fun getJokeById(@PathVariable id: Int): ResponseEntity<Joke> {
+        logger.info("Fetching joke with id: $id")
+        val joke = service.get(id)
+        return if (joke != null) {
+            logger.debug("Found joke: $joke")
+            ResponseEntity.ok(joke)
+        } else {
+            logger.warn("Joke with id $id not found.")
+            ResponseEntity.notFound().build()
+        }
     }
 
     data class ImportResponse(val location: String)
 
     @PostMapping("/import")
+    @Suppress("unused")
     fun importJokes(@RequestBody jokes: List<Joke>): ResponseEntity<List<ImportResponse>> {
         logger.info("Received batch of ${jokes.size} jokes for import.")
 
@@ -55,7 +124,6 @@ class JokesV1Controller(private var service: JokesService) {
 
         for (joke in jokes) {
             logger.info("Processing joke: $joke")
-            // TODO service throws exception if joke is invalid
             val savedJoke = service.save(joke)
             logger.debug("Saved joke: $savedJoke")
             response += ImportResponse("${ApiPaths.JOKES_V1}/${savedJoke.id}")
