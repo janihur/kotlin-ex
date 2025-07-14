@@ -1,5 +1,6 @@
 package net.metsankulma.jokes.service
 
+import net.metsankulma.jokes.dto.`in`.OfficialJoke
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -14,8 +15,8 @@ class OfficialJokeApi {
         .build()
 
     // TODO this is blocking version, make also non-blocking version
-    // TODO marshall to data class
-    fun get(): String {
+    // TODO error reporting/handling
+    fun get(): OfficialJoke? {
         return client.get()
             .uri { uriBuilder ->
                 uriBuilder
@@ -23,9 +24,9 @@ class OfficialJokeApi {
                     .build()
             }
             .retrieve()
-            .bodyToMono<String>()
+            .bodyToMono<OfficialJoke>() // automatically converts JSON to OfficialJoke data class
             .block() // blocks until the response is received
-            ?: ""
+            ?: null
     }
 
 }

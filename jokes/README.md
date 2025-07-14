@@ -13,6 +13,18 @@ Go to file: JokesApplication.kt
  > Ctrl + Shift + F10
 ```
 
+## Packages
+
+The source code is shared into following packages:
+
+|Package                        |Description|
+|-------------------------------|-----------|
+|`net.metsankulma.jokes.dto.in` |Incoming [data transfer objects](https://en.wikipedia.org/wiki/Data_transfer_object).|
+|`net.metsankulma.jokes.dto.out`|Outgoing [data transfer objects](https://en.wikipedia.org/wiki/Data_transfer_object).|
+|`net.metsankulma.jokes.service`|[Annotated "Service" classes](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html).|
+
+## TODO
+
 HTTP calls greetings:
 ```
 curl --verbose http://localhost:8080
@@ -56,10 +68,21 @@ curl --verbose http://localhost:8080/jokes/v1/6
 curl --verbose 'http://localhost:8080/jokes/v1?family=dadjoke&amount=2'
 ```
 
-The simpsons api has discontinued on 8th July 2025 as glitch.com ended project hosting
+The Simpsons quote API was discontinued on 8th July 2025 as glitch.com ended project hosting.
 
-https://github.com/15Dkatz/official_joke_api
-https://official-joke-api.appspot.com/jokes/random
+Let's replace that with https://github.com/15Dkatz/official_joke_api
+
+Example:
+```
+curl --verbose https://official-joke-api.appspot.com/jokes/random
+[...]
+{
+  "type":"general",
+  "setup":"Have you heard of the band 1023MB?",
+  "punchline":"They haven't got a gig yet.",
+  "id":110
+}
+```
 
 ## API
 

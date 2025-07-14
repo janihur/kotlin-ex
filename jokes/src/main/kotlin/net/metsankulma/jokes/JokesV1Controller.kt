@@ -1,6 +1,11 @@
 package net.metsankulma.jokes
 
-import net.metsankulma.jokes.dto.ErrorResponse
+import net.metsankulma.jokes.dto.out.BAD_REQUEST
+import net.metsankulma.jokes.dto.out.GONE
+import net.metsankulma.jokes.dto.out.INTERNAL_SERVER_ERROR
+import net.metsankulma.jokes.dto.out.Joke
+import net.metsankulma.jokes.dto.out.NOT_IMPLEMENTED
+import net.metsankulma.jokes.dto.out.OK
 import net.metsankulma.jokes.service.BaconIpsumApi
 import net.metsankulma.jokes.service.ChuckNorrisApi
 import net.metsankulma.jokes.service.OfficialJokeApi
@@ -31,67 +36,93 @@ class JokesV1Controller(private var service: JokesService) {
     // get a random joke for family
     @GetMapping("/")
     @Suppress("unused")
-    fun getJoke(@RequestParam(required = true) family: String, @RequestParam amount: Int = 1): ResponseEntity<Any> {
+    fun getJoke(
+        @RequestParam(required = true) family: String,
+        @RequestParam amount: Int = 1
+    ): ResponseEntity<Any> {
         logger.info("One joke requested for family: '$family', amount: $amount")
-        // allow only certain family values
-        val allowedFamilies = setOf("bacon", "chucknorris", "dadjoke", "official", "simpsons")
-        if (family !in allowedFamilies) {
-            val error = ErrorResponse(
-                httpStatusCode = 400,
-                message = "Invalid 'family' parameter.",
-                details = mapOf(
-                    "receivedValue" to family,
-                    "allowedValues" to allowedFamilies)
-            )
-            logger.warn(error.toString())
-            return ResponseEntity.badRequest().body(error)
-        }
+
         // allow only certain amount values
         if (amount < 1 || amount > 10) {
-            val error = ErrorResponse(
-                httpStatusCode = 400,
+            val response = BAD_REQUEST(
                 message = "Invalid 'amount' parameter.",
-                details = mapOf(
-                    "receivedValue" to amount,
-                    "allowedValues" to "1-10"
-                )
+                details = mapOf("receivedValue" to amount, "allowedValues" to "1-10")
             )
-            logger.warn(error.toString())
-            return ResponseEntity.badRequest().body(error)
+            logger.info(response.toString())
+            response
         }
 
-        val joke = when (family) {
+        return when (family) {
             "bacon" -> {
                 logger.info("Fetching a random bacon.")
                 val bacon = BaconIpsumApi().get()
-                Joke(family = family, text = bacon.first())
+
+                val response = OK(family = family, text = bacon.first())
+                logger.info(response.toString())
+                response
             }
             "chucknorris" -> {
                 logger.info("Fetching a random Chuck Norris fact.")
                 val fact = ChuckNorrisApi().get()
-                Joke(family = family, text = fact)
+
+                val response = OK(family = family, text = fact)
+                logger.info(response.toString())
+                response
             }
             "dadjoke" -> {
                 logger.info("Fetching a random dad joke.")
-                Joke(family = family, text = "TODO")
+
+                val response = NOT_IMPLEMENTED(details = mapOf("family" to family))
+                logger.info(response.toString())
+                response
+            }
+            "mystery" -> {
+                logger.info("Fetching a random mystery joke.")
+
+                val response = NOT_IMPLEMENTED(details = mapOf("family" to family))
+                logger.info(response.toString())
+                response
             }
             "official" -> {
                 logger.info("Fetching a random official joke.")
                 val joke = OfficialJokeApi().get()
                 logger.debug("Received joke: $joke")
-                Joke(family = family, text = "TODO")
+
+                val (response, loggerF) = if (joke != null) {
+                    Pair<ResponseEntity<Any>, (String)-> Unit>(
+                        OK(family = family, text = "${joke.setup} ${joke.punchline}"),
+                        logger::info
+                    )
+                } else {
+                    Pair<ResponseEntity<Any>, (String)-> Unit>(
+                        INTERNAL_SERVER_ERROR(details = mapOf("family" to family)),
+                        logger::error
+                    )
+                }
+                loggerF(response.toString())
+                response
             }
             "simpsons" -> {
                 logger.info("Fetching a random Simpsons quote.")
-                Joke(family = family, text = "TODO")
+
+                val response =
+                GONE(
+                    message = "Simpsons quotes are no longer available. See https://blog.glitch.com/post/changes-are-coming-to-glitch/",
+                    details = mapOf("family" to family)
+                )
+                logger.info(response.toString())
+                response
             }
             else -> {
-                logger.error("Unexpected family value: $family")
-                Joke(family = family, text = "Never heard of it!")
+                val allowedFamilies = setOf("bacon", "chucknorris", "dadjoke", "mystery", "official", "simpsons")
+                val response = BAD_REQUEST(
+                    message = "Invalid 'family' query parameter.",
+                    details = mapOf("receivedValue" to family, "allowedValues" to allowedFamilies)
+                )
+                logger.info(response.toString())
+                response
             }
         }
-
-        return ResponseEntity.ok(joke)
     }
 
     @GetMapping("joke/{id}")
