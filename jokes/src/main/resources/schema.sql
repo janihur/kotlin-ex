@@ -5,8 +5,11 @@ text     VARCHAR      NOT NULL
 
 create table if not exists jokes (
  id      INT AUTO_INCREMENT PRIMARY KEY
+,id_ext  VARCHAR(50)
 ,created TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 ,updated TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-,family  VARCHAR(60) NOT NULL
+,family  VARCHAR(50) NOT NULL
 ,text    VARCHAR     NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_jokes_family ON jokes (family);

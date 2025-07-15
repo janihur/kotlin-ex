@@ -63,7 +63,7 @@ curl --verbose http://localhost:8080/jokes/v1/import \
  --data "[{\"family\": \"dadjoke\", \"text\": \"Why did the scarecrow win an award? Because he was outstanding in his field.\"},
 {\"family\": \"dadjoke\", \"text\": \"Why did the tomato turn red? Because it saw the salad dressing.\"}]"
 
-curl --verbose http://localhost:8080/jokes/v1/6
+curl --verbose http://localhost:8080/jokes/v1/localdb/6
 
 curl --verbose 'http://localhost:8080/jokes/v1?family=dadjoke&amount=2'
 ```
@@ -86,11 +86,12 @@ curl --verbose https://official-joke-api.appspot.com/jokes/random
 
 ## API
 
-|API                    |Description|
-|-----------------------|-----------|
-|`POST /jokes/v1/import`|Add a batch of jokes to local database.|
-|`GET /jokes/v1`        |Get a random joke from internet.|
-|`GET /jokes/v1/{id}`   |Get a joke from database by `{id}`.|
+|API                         |Description|
+|----------------------------|-----------|
+|`GET /jokes/v1/localdb/{id}`|Get a joke from the local database by `{id}`.|
+|`GET /jokes/v1/localdb/random` |Get a random joke from the local database.|
+|`POST /jokes/v1/localdb/import`|Add a batch of jokes to the local database.|
+|`GET /jokes/v1/`            |Get a random joke from internet.|
 
 Unexpected problems are covered automatically by the web framework as [500 Internal Server Error](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500).
 
@@ -116,4 +117,11 @@ Curated list of high quality Dad Jokes.
 "Why don't scientists trust atoms? Because they make up everything.",
 "Why don’t scientists trust stairs? Because they’re always up to something.",
 "Why don’t skeletons fight each other? They don’t have the guts",
+```
+
+Import:
+```
+curl --verbose http://localhost:8080/jokes/v1/localdb/import \
+ --header 'content-type: application/json' \
+ --data @dadjokes.json
 ```

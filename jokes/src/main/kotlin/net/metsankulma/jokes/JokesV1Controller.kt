@@ -3,11 +3,14 @@ package net.metsankulma.jokes
 import net.metsankulma.jokes.dto.out.BAD_REQUEST
 import net.metsankulma.jokes.dto.out.GONE
 import net.metsankulma.jokes.dto.out.INTERNAL_SERVER_ERROR
+import net.metsankulma.jokes.dto.out.ImportResponse
 import net.metsankulma.jokes.dto.out.Joke
+import net.metsankulma.jokes.dto.out.NOT_FOUND
 import net.metsankulma.jokes.dto.out.NOT_IMPLEMENTED
 import net.metsankulma.jokes.dto.out.OK
 import net.metsankulma.jokes.service.BaconIpsumApi
 import net.metsankulma.jokes.service.ChuckNorrisApi
+import net.metsankulma.jokes.service.JokesDb
 import net.metsankulma.jokes.service.OfficialJokeApi
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -22,18 +25,14 @@ import java.net.URI
 
 @RestController
 @RequestMapping(ApiPaths.JOKES_V1)
-class JokesV1Controller(private var service: JokesService) {
+class JokesV1Controller(private var jokesDb: JokesDb) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @GetMapping("/bacon")
-    @Suppress("unused")
-    fun getBaconIpsum(): ResponseEntity<List<String>> {
-        val bacon = BaconIpsumApi().get()
-        return ResponseEntity.ok(bacon)
-    }
+    private val allowedFamilies = setOf("bacon", "chucknorris", "dadjoke", "mystery", "official", "simpsons")
 
-    // get a random joke for family
+    // ------------------------------------------------------------------------
+    // get a random joke for family from internet
     @GetMapping("/")
     @Suppress("unused")
     fun getJoke(
@@ -52,6 +51,7 @@ class JokesV1Controller(private var service: JokesService) {
             response
         }
 
+        // resolve family to a specific joke type
         return when (family) {
             "bacon" -> {
                 logger.info("Fetching a random bacon.")
@@ -114,7 +114,7 @@ class JokesV1Controller(private var service: JokesService) {
                 response
             }
             else -> {
-                val allowedFamilies = setOf("bacon", "chucknorris", "dadjoke", "mystery", "official", "simpsons")
+//                val allowedFamilies = setOf("bacon", "chucknorris", "dadjoke", "mystery", "official", "simpsons")
                 val response = BAD_REQUEST(
                     message = "Invalid 'family' query parameter.",
                     details = mapOf("receivedValue" to family, "allowedValues" to allowedFamilies)
@@ -125,41 +125,70 @@ class JokesV1Controller(private var service: JokesService) {
         }
     }
 
-    @GetMapping("joke/{id}")
+    // ------------------------------------------------------------------------
+    // get a joke from local database by id
+    @GetMapping("/localdb/{id}")
     @Suppress("unused")
-    fun getJokeById(@PathVariable id: Int): ResponseEntity<Joke> {
+    fun getJokeById(@PathVariable(required = true) id: Int): ResponseEntity<Any> {
         logger.info("Fetching joke with id: $id")
-        val joke = service.get(id)
+        val joke = jokesDb.get(id)
         return if (joke != null) {
             logger.debug("Found joke: $joke")
-            ResponseEntity.ok(joke)
+            OK(joke)
         } else {
-            logger.warn("Joke with id $id not found.")
-            ResponseEntity.notFound().build()
+            logger.debug("Joke with id $id not found.")
+            NOT_FOUND(details = mapOf("id" to id))
         }
     }
 
-    data class ImportResponse(val location: String)
+    // ------------------------------------------------------------------------
+    // get a random joke from local database for family
+    @GetMapping("/localdb/random")
+    @Suppress("unused")
+    fun getRandomJoke(
+        @RequestParam(required = true) family: String
+    ): ResponseEntity<Any> {
+        logger.info("Fetching a random joke for family: '$family'")
 
-    @PostMapping("/import")
+        // resolve family to a specific joke type
+        return when {
+            family in allowedFamilies -> {
+                val joke = jokesDb.getRandom(family)
+                if (joke != null) {
+                    logger.debug("Found joke: $joke")
+                    OK(joke)
+                } else {
+                    logger.debug("No jokes found for family: $family")
+                    NOT_FOUND(details = mapOf("family" to family))
+                }
+            }
+            else -> {
+                val response = BAD_REQUEST(
+                    message = "Invalid 'family' query parameter.",
+                    details = mapOf("receivedValue" to family, "allowedValues" to allowedFamilies)
+                )
+                logger.info(response.toString())
+                response
+            }
+        }
+    }
+    // ------------------------------------------------------------------------
+    // add a batch of jokes to local database
+    @PostMapping("/localdb/import")
     @Suppress("unused")
     fun importJokes(@RequestBody jokes: List<Joke>): ResponseEntity<List<ImportResponse>> {
         logger.info("Received batch of ${jokes.size} jokes for import.")
 
-        if (jokes.isEmpty()) {
-            logger.debug("No jokes provided for import.")
-            return ResponseEntity.badRequest().body(emptyList())
-        }
-
+        val location = "${ApiPaths.JOKES_V1}/localdb/"
         val response = mutableListOf<ImportResponse>()
 
         for (joke in jokes) {
             logger.info("Processing joke: $joke")
-            val savedJoke = service.save(joke)
-            logger.debug("Saved joke: $savedJoke")
-            response += ImportResponse("${ApiPaths.JOKES_V1}/${savedJoke.id}")
+            val savedJoke = jokesDb.save(joke)
+            logger.debug("Saved joke with id: ${savedJoke.id}")
+            response += ImportResponse("$location/${savedJoke.id}")
         }
 
-        return ResponseEntity.created(URI(ApiPaths.JOKES_V1)).body(response)
+        return ResponseEntity.created(URI(location)).body(response)
     }
 }

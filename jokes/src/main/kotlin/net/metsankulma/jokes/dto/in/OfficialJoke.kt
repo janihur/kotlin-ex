@@ -5,4 +5,4 @@ data class OfficialJoke(
     val setup: String,
     val punchline: String,
     val id: Int
-){}
+)

@@ -10,6 +10,15 @@ fun OK(
         .ok()
         .body(Joke(family = family, text = text))
 }
+
+fun OK(
+    joke: Joke
+): ResponseEntity<Any> {
+    return ResponseEntity
+        .ok()
+        .body(joke)
+}
+
 fun BAD_REQUEST(
     message: String = "The request could not be understood by the server due to malformed syntax.",
     details: Map<String, Any> = emptyMap()
@@ -18,6 +27,16 @@ fun BAD_REQUEST(
         .badRequest()
         .body(Error(400, message, details))
 }
+
+fun NOT_FOUND(
+    message: String = "The requested resource could not be found.",
+    details: Map<String, Any> = emptyMap()
+): ResponseEntity<Any> {
+    return ResponseEntity
+        .status(404)
+        .body(Error(404, message, details))
+}
+
 fun GONE (
     message: String = "The requested resource is no longer available.",
     details: Map<String, Any> = emptyMap()
