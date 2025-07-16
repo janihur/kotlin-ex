@@ -25,11 +25,13 @@ The source code is shared into following packages:
 
 ## API
 
-The application hosts both the original greetings API and later added jokes API.
+The application hosts both the original messages API and later added jokes API.
 
-|API Endpoint                   |Description|
-|-------------------------------|-----------|
-
+|API Endpoint           |Description|
+|-----------------------|-----------|
+|`GET /messages/v1`     |List all messages from local database.|
+|`GET /messages/v1/{id}`|Get a message from the local database by `{id}`.|
+|`POST /messages/v1`    |Add a message to the local database.|
 
 |API Endpoint                   |Description|
 |-------------------------------|-----------|
