@@ -2,37 +2,49 @@ package net.metsankulma.jokes.service
 
 import net.metsankulma.jokes.dto.out.Joke
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.query
+import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.support.GeneratedKeyHolder
 import org.springframework.stereotype.Service
+import java.sql.ResultSet
 import java.sql.Statement
 
 @Service
 class JokesDb(private val db: JdbcTemplate) {
-    fun get(id: Int): Joke? {
-        return db.query("select id, id_ext, family, text from jokes where id = ?", id) { response, _ ->
-            Joke(
-                response.getInt("id").toUInt(),
-                response.getString("id_ext"),
-                response.getString("family"),
-                response.getString("text")
+    class JokeRowMapper : RowMapper<Joke> {
+        override fun mapRow(rs: ResultSet, rowNum: Int): Joke {
+            return Joke(
+                rs.getInt("id").toUInt(),
+                rs.getString("id_ext"),
+                rs.getString("family"),
+                rs.getString("text")
             )
-        }.singleOrNull()
+        }
     }
 
-    // get a random joke for family
-    fun getRandom(family: String): Joke? {
+    private val jokeRowMapper = JokeRowMapper()
+
+    fun get(id: Int): Joke? {
         return db.query(
-            "select id, id_ext, family, text from jokes where family = ? order by random() limit 1",
-            family
-        ) { response, _ ->
-            Joke(
-                response.getInt("id").toUInt(),
-                response.getString("id_ext"),
-                response.getString("family"),
-                response.getString("text")
-            )
-        }.singleOrNull()
+            "select id, id_ext, family, text from jokes where id = ?",
+            jokeRowMapper,
+            id
+        ).singleOrNull()
+    }
+
+    // get a random joke (for family)
+    fun getRandom(family: String? = null): Joke? {
+        return if (family != null) {
+            db.query(
+                "select id, id_ext, family, text from jokes where family = ? order by random() limit 1",
+                jokeRowMapper,
+                family
+            ).singleOrNull()
+        } else {
+            db.query(
+                "select id, id_ext, family, text from jokes order by random() limit 1",
+                jokeRowMapper
+            ).singleOrNull()
+        }
     }
 
     fun save(joke: Joke): Joke {

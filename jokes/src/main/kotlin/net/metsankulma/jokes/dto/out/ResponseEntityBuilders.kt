@@ -1,6 +1,7 @@
 package net.metsankulma.jokes.dto.out
 
 import org.springframework.http.ResponseEntity
+import java.net.URI
 
 fun OK(
     family: String,
@@ -17,6 +18,15 @@ fun OK(
     return ResponseEntity
         .ok()
         .body(joke)
+}
+
+fun CREATED(
+    location: String,
+    locations: List<Location>
+): ResponseEntity<List<Location>> {
+    return ResponseEntity
+        .created(URI(location))
+        .body(locations)
 }
 
 fun BAD_REQUEST(

@@ -3,14 +3,14 @@
 
 An example Kotlin Spring Boot API application with H2 database backend.
 
-Originally https://kotlinlang.org/docs/jvm-get-started-spring-boot.html
+Originally https://kotlinlang.org/docs/jvm-get-started-spring-boot.html but modified after that.
 
 Initial application skeleton created by: https://start.spring.io/
 
 Run the application in the IDE:
 ```
 Go to file: JokesApplication.kt
- > Ctrl + Shift + F10
+ > Shift + F10
 ```
 
 ## Packages
@@ -22,6 +22,56 @@ The source code is shared into following packages:
 |`net.metsankulma.jokes.dto.in` |Incoming [data transfer objects](https://en.wikipedia.org/wiki/Data_transfer_object).|
 |`net.metsankulma.jokes.dto.out`|Outgoing [data transfer objects](https://en.wikipedia.org/wiki/Data_transfer_object).|
 |`net.metsankulma.jokes.service`|[Annotated "Service" classes](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html).|
+
+## API
+
+The application hosts both the original greetings API and later added jokes API.
+
+|API Endpoint                   |Description|
+|-------------------------------|-----------|
+
+
+|API Endpoint                   |Description|
+|-------------------------------|-----------|
+|`GET /jokes/v1/localdb/{id}`   |Get a joke from the local database by `{id}`.|
+|`GET /jokes/v1/localdb/random` |Get a random joke from the local database.|
+|`POST /jokes/v1/localdb/import`|Add a batch of jokes to the local database.|
+|`GET /jokes/v1/`               |Get a random joke from internet.|
+
+Unexpected problems are covered automatically by the web framework as [500 Internal Server Error](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500).
+
+## Used 3rd Party APIs
+
+* https://baconipsum.com/
+* https://api.chucknorris.io/
+* https://github.com/15Dkatz/official_joke_api
+
+Previously used The Simpsons quote API was discontinued on 8th July 2025 as glitch.com ended project hosting.
+
+Examples:
+```
+curl 'https://baconipsum.com/api/?type=all-meat&sentences=1'
+["Pastrami ball tip porchetta flank pork loin drumstick."]
+
+curl https://api.chucknorris.io/jokes/random
+{
+  "categories": [],
+  "created_at": "2020-01-05 13:42:20.262289",
+  "icon_url": "https://api.chucknorris.io/img/avatar/chuck-norris.png",
+  "id": "lxZodJ3LTvWrqiJIRrx21w",
+  "updated_at": "2020-01-05 13:42:20.262289",
+  "url": "https://api.chucknorris.io/jokes/lxZodJ3LTvWrqiJIRrx21w",
+  "value": "Chuck Norris got tired of hearing about the internet phenomenon about him. So he recently invented the Chuckroll."
+}
+
+curl https://official-joke-api.appspot.com/jokes/random
+{
+  "type":"general",
+  "setup":"Have you heard of the band 1023MB?",
+  "punchline":"They haven't got a gig yet.",
+  "id":110
+}
+```
 
 ## TODO
 
@@ -67,33 +117,6 @@ curl --verbose http://localhost:8080/jokes/v1/localdb/6
 
 curl --verbose 'http://localhost:8080/jokes/v1?family=dadjoke&amount=2'
 ```
-
-The Simpsons quote API was discontinued on 8th July 2025 as glitch.com ended project hosting.
-
-Let's replace that with https://github.com/15Dkatz/official_joke_api
-
-Example:
-```
-curl --verbose https://official-joke-api.appspot.com/jokes/random
-[...]
-{
-  "type":"general",
-  "setup":"Have you heard of the band 1023MB?",
-  "punchline":"They haven't got a gig yet.",
-  "id":110
-}
-```
-
-## API
-
-|API                         |Description|
-|----------------------------|-----------|
-|`GET /jokes/v1/localdb/{id}`|Get a joke from the local database by `{id}`.|
-|`GET /jokes/v1/localdb/random` |Get a random joke from the local database.|
-|`POST /jokes/v1/localdb/import`|Add a batch of jokes to the local database.|
-|`GET /jokes/v1/`            |Get a random joke from internet.|
-
-Unexpected problems are covered automatically by the web framework as [500 Internal Server Error](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500).
 
 ## Dad Jokes
 
