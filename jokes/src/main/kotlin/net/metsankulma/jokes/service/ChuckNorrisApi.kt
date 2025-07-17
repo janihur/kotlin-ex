@@ -13,7 +13,7 @@ class ChuckNorrisApi {
 
     // TODO this is blocking version, make also non-blocking version
     // Read the answer as a String and parse it as JSON.
-    fun get(): String {
+    fun get(): Pair<String, String> {
         val jsonResponse = client.get()
             .uri { uriBuilder ->
                 uriBuilder
@@ -25,6 +25,9 @@ class ChuckNorrisApi {
             .block() // blocks until the response is received
 
         val rootNode = jacksonObjectMapper().readTree(jsonResponse)
-        return rootNode.get("value")?.asText() ?: "No fact available."
+        return Pair<String, String>(
+            rootNode.get("id")?.asText() ?: "",
+            rootNode.get("value")?.asText() ?: "No fact available."
+        )
     }
 }

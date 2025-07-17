@@ -4,12 +4,13 @@ import org.springframework.http.ResponseEntity
 import java.net.URI
 
 fun OK(
+    extId: String? = null,
     family: String,
     text: String
 ): ResponseEntity<Any> {
     return ResponseEntity
         .ok()
-        .body(Joke(family = family, text = text))
+        .body(Joke(extId = extId, family = family, text = text))
 }
 
 fun OK(

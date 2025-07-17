@@ -67,7 +67,7 @@ class JokesV1Api(private var jokesDb: JokesDb) {
                 logger.info("Fetching a random Chuck Norris fact.")
                 val fact = ChuckNorrisApi().get()
 
-                val response = OK(family = family, text = fact)
+                val response = OK(extId = fact.first, family = family, text = fact.second)
                 logger.info(response.toString())
                 response
             }
@@ -92,7 +92,7 @@ class JokesV1Api(private var jokesDb: JokesDb) {
 
                 val (response, loggerF) = if (joke != null) {
                     Pair<ResponseEntity<Any>, (String)-> Unit>(
-                        OK(family = family, text = "${joke.setup} ${joke.punchline}"),
+                        OK(extId = joke.id.toString(), family = family, text = "${joke.setup} ${joke.punchline}"),
                         logger::info
                     )
                 } else {

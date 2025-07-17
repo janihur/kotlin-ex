@@ -33,14 +33,39 @@ The application hosts both the original messages API and later added jokes API.
 |`GET /messages/v1/{id}`|Get a message from the local database by `{id}`.|
 |`POST /messages/v1`    |Add a message to the local database.|
 
-|API Endpoint                   |Description|
-|-------------------------------|-----------|
-|`GET /jokes/v1/localdb/{id}`   |Get a joke from the local database by `{id}`.|
-|`GET /jokes/v1/localdb/random` |Get a random joke from the local database.|
-|`POST /jokes/v1/localdb/import`|Add a batch of jokes to the local database.|
-|`GET /jokes/v1/`               |Get a random joke from internet.|
+|API Endpoint                    |Description|
+|--------------------------------|-----------|
+|`GET /jokes/v1/localdb/{id}`    |Get a joke from the local database by `{id}`.|
+|`GET /jokes/v1/localdb/random`  |Get a random joke from the local database.|
+|`POST /jokes/v1/localdb/import` |Add a batch of jokes to the local database.|
+|`GET /jokes/v1/?family={family}`|Get a random joke from internet for one of the joke families.|
 
 Unexpected problems are covered automatically by the web framework as [500 Internal Server Error](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/500).
+
+### Messages API Examples
+
+```
+curl http://localhost:8080/messages/v1
+curl http://localhost:8080/messages/v1/{id}
+
+curl http://localhost:8080/messages/v1 \
+ --header 'Content-Type: application/json' \
+ --data @message1.json
+```
+
+### Jokes API Examples
+
+```
+curl 'http://localhost:8080/jokes/v1/?family=official'
+curl http://localhost:8080/jokes/v1/localdb/random
+curl http://localhost:8080/jokes/v1/localdb/{id}
+```
+
+```
+curl http://localhost:8080/jokes/v1/import \
+ --header 'Content-Type: application/json' \
+ --data "[{\"family\": \"dadjoke\", \"text\": \"Why don't scientists trust atoms? Because they make up everything.\"}]"
+```
 
 ## Used 3rd Party APIs
 
@@ -75,54 +100,9 @@ curl https://official-joke-api.appspot.com/jokes/random
 }
 ```
 
-## TODO
-
-HTTP calls greetings:
-```
-curl --verbose http://localhost:8080
-curl --verbose http://localhost:8080/ID
-
-curl -X POST --location \
- http://localhost:8080 \
- -H 'Content-Type: application/json' \
- -d '{ "text": "Hello!" }'
-
-curl -X POST --location \
- http://localhost:8080 \
- -H 'Content-Type: application/json' \
- -d '{ "text": "Bonjour!" }'
-
-curl -X POST --location \
- http://localhost:8080 \
- -H 'Content-Type: application/json' \
- -d '{ "text": "Ciao!" }'
-```
-
-HTTP calls jokes:
-```
-curl --verbose http://localhost:8080/jokes/v1
-```
-
-```
-curl --verbose http://localhost:8080/jokes/v1/import \
- -X POST \
- --header 'Content-Type: application/json' \
- --data "[{\"family\": \"dadjoke\", \"text\": \"Why don't scientists trust atoms? Because they make up everything.\"}]"
-
-curl --verbose http://localhost:8080/jokes/v1/import \
- -X POST \
- --header 'Content-Type: application/json' \
- --data "[{\"family\": \"dadjoke\", \"text\": \"Why did the scarecrow win an award? Because he was outstanding in his field.\"},
-{\"family\": \"dadjoke\", \"text\": \"Why did the tomato turn red? Because it saw the salad dressing.\"}]"
-
-curl --verbose http://localhost:8080/jokes/v1/localdb/6
-
-curl --verbose 'http://localhost:8080/jokes/v1?family=dadjoke&amount=2'
-```
-
 ## Dad Jokes
 
-Curated list of high quality Dad Jokes.
+Curated list of high quality Dad Jokes. See also [dadjokes.json](dadjokes.json).
 ```
 "Did you hear about the claustrophobic astronaut? He just needed a little space.",
 "I told my friend 10 jokes to make him laugh. Sadly, no pun in ten did.",
